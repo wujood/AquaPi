@@ -5,8 +5,8 @@ import sys
 import spidev
 from statistics import median
 
-sys.path.insert(0, './Client')
-# ~ import swagger_client
+sys.path.insert(0, './api')
+import swagger_client
 
 ### GPIO SETUP ###
 GPIO.setmode(GPIO.BCM)
@@ -23,7 +23,7 @@ INP_LIGHT_BARRIER=6
 GPIO.setup(INP_LIGHT_BARRIER, GPIO.IN)
 
 #LED 
-OUT_LED=2
+OUT_LED=14
 GPIO.setup(OUT_LED, GPIO.OUT)
 GPIO.output(OUT_LED, GPIO.HIGH)
 
@@ -119,9 +119,39 @@ def switch_light(on):
 def read_light_barrier():
 	return GPIO.input(INP_TEMP)
 
+def useComponentSettings(componentSettings):
+	if(componentSettings.feeder == 1):
+		GPIO.output(OUT_SERVO, GPIO.HIGH)
+	else:
+		GPIO.output(OUT_SERVO, GPIO.LOW)
+	if(componentSettings.lamp == 1):
+		GPIO.output(OUT_LED, GPIO.HIGH)
+		GPIO.output(OUT_RELAY, GPIO.HIGH)
+	else:
+		GPIO.output(OUT_LED, GPIO.LOW)
+		GPIO.output(OUT_RELAY, GPIO.LOW)
+	
+	return
+
+
 try:
+	api = swagger_client.apis.ComponentSettingsApi()
 	while 1:
 		time.sleep(1)
+		request = swagger_client.models.ComponentSettings('Fibonacci')
+		request.feeder = swagger_client.models.Feeder(0, '')
+		request.waterlevelsensor = swagger_client.models.WaterLevelSensor(read_water_lvl(), '')
+		request.pump = swagger_client.models.Pump(0, '')
+		request.lamp = swagger_client.models.Lamp(0, '')
+		request.waterthermometer = swagger_client.models.Thermometer(read_temperature_water(), '')
+		request.airthermometer = swagger_client.models.Thermometer(read_temperature_air(), '')
+		request.lightsensor = swagger_client.models.LightSensor(read_brightness(), '')
+		request.waterflowsensor = swagger_client.models.WaterFlowSensor(0, '')
+
+		api.put_component_settings(request)
+		filter = swagger_client.models.ParamComponentSettingsPost('Fibonacci')
+		response = api.post_component_settings(filter)
+		useComponentSettings(response[0])
 		print('------------------------------------')
 		print('Helligkeit:\t\t',read_brightness())
 		print('Wasserstand:\t\t',read_water_lvl())
