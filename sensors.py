@@ -35,8 +35,8 @@ GPIO.output(OUT_RELAY, GPIO.LOW)
 ### ANALOG ###
 
 #Temperature
-INP_TEMP_WATER=0
-INP_TEMP_AIR=2
+INP_TEMP_WATER=2
+INP_TEMP_AIR=0
 
 #Water level sensor
 INP_WATERLVL=5
@@ -120,11 +120,11 @@ def read_light_barrier():
 	return GPIO.input(INP_TEMP)
 
 def useComponentSettings(componentSettings):
-	if(componentSettings.feeder == 1):
+	if(componentSettings.feeder.value == 1):
 		GPIO.output(OUT_SERVO, GPIO.HIGH)
 	else:
 		GPIO.output(OUT_SERVO, GPIO.LOW)
-	if(componentSettings.lamp == 1):
+	if(componentSettings.lamp.value == 1):
 		GPIO.output(OUT_LED, GPIO.HIGH)
 		GPIO.output(OUT_RELAY, GPIO.HIGH)
 	else:
@@ -138,20 +138,22 @@ try:
 	api = swagger_client.apis.ComponentSettingsApi()
 	while 1:
 		time.sleep(1)
+		filter = swagger_client.models.ParamComponentSettingsPost('Fibonacci')
+		response = api.post_component_settings(filter)
+		useComponentSettings(response[0])
+
 		request = swagger_client.models.ComponentSettings('Fibonacci')
-		request.feeder = swagger_client.models.Feeder(0, '')
+		request.feeder = swagger_client.models.Feeder(response[0].feeder.value, '')
 		request.waterlevelsensor = swagger_client.models.WaterLevelSensor(read_water_lvl(), '')
-		request.pump = swagger_client.models.Pump(0, '')
-		request.lamp = swagger_client.models.Lamp(0, '')
+		request.pump = swagger_client.models.Pump(response[0].pump.value, '')
+		request.lamp = swagger_client.models.Lamp(response[0].lamp.value, '')
 		request.waterthermometer = swagger_client.models.Thermometer(read_temperature_water(), '')
 		request.airthermometer = swagger_client.models.Thermometer(read_temperature_air(), '')
 		request.lightsensor = swagger_client.models.LightSensor(read_brightness(), '')
 		request.waterflowsensor = swagger_client.models.WaterFlowSensor(0, '')
 
 		api.put_component_settings(request)
-		filter = swagger_client.models.ParamComponentSettingsPost('Fibonacci')
-		response = api.post_component_settings(filter)
-		useComponentSettings(response[0])
+		
 		print('------------------------------------')
 		print('Helligkeit:\t\t',read_brightness())
 		print('Wasserstand:\t\t',read_water_lvl())
