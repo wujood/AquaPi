@@ -9,13 +9,9 @@ sys.path.insert(0, './Client')
 # ~ import swagger_client
 
 ### GPIO SETUP ###
-## digital peripherals
 GPIO.setmode(GPIO.BCM)
 
-#Relais for light (using Normally-Open-mode (NO))
-RELAY_LIGHT=12
-GPIO.setup(RELAY_LIGHT, GPIO.OUT)
-GPIO.output(RELAY_LIGHT, GPIO.LOW)
+### DIGITAL ###
 
 #SERVO
 OUT_SERVO=26
@@ -125,11 +121,12 @@ def read_light_barrier():
 
 try:
 	while 1:
-		time.sleep(0.5)
-		print('Helligkeit: ',read_brightness())
-		print('Wasserstand:  ',read_water_lvl())
-		print('Lufttemperatur: ',read_temperature_air())
-		print('Wassertemperatur: ',read_temperature_water())
+		time.sleep(1)
+		print('------------------------------------')
+		print('Helligkeit:\t\t',read_brightness())
+		print('Wasserstand:\t\t',read_water_lvl())
+		print('Lufttemperatur:\t\t',read_temperature_air())
+		print('Wassertemperatur:\t',read_temperature_water())
 except KeyboardInterrupt:
     pass
 finally:
